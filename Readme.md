@@ -14,26 +14,26 @@ Dirguard is a Rust application designed to monitor file system events within a s
 
 ## Installation
 1. Clone the repository:
-     sh
+  ```sh
     git clone https://github.com/nyaaaww/Dirguard.git
     cd Dirguard
-     
+   ```
 
 2. Build the application:
-     sh
+   ```sh
     cargo build --release
-     
+   ```
 
 3. Run the application:
-     sh
+   ```sh
     ./dg
-     
+   ```
 
 ## Usage
 Run the application with the path to the directory you want to monitor as the argument:
- sh
+ ```sh
 ./target/release/dg /path/to/watch
- 
+ ```
 
 ## Configuration
 The application reads a configuration file named `config.txt` in the root directory. Add the names of the files you want to be deleted when created or modified, one per line. Lines starting with `#` are treated as comments and are ignored.
