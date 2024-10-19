@@ -41,10 +41,10 @@ The application reads a configuration file named `config.txt` in the root direct
 #Example `config.txt`:
  
  List of files to be deleted when created or modified:  
-    txt
+  ``` txt
      secret.txt  
      confidential.pdf  
- 
+ ```
 
 ## Logging
 Events and actions taken by the application are logged to a file named `hotwatch.log` in the root directory.
