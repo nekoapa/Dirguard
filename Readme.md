@@ -40,9 +40,9 @@ The application reads a configuration file named `config.txt` in the root direct
 
 #Example `config.txt`:
  
- List of files to be deleted when created or modified:
-secret.txt
-confidential.pdf
+ List of files to be deleted when created or modified:  
+secret.txt  
+confidential.pdf  
  
 
 ## Logging
