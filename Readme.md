@@ -39,7 +39,7 @@ Run the application with the path to the directory you want to monitor as the ar
 The application reads a configuration file named `config.txt` in the root directory. Add the names of the files you want to be deleted when created or modified, one per line. Lines starting with `#` are treated as comments and are ignored.
 
 ##Example `config.txt`:
- List of files to be deleted when created or modified:  
+List of files to be deleted when created or modified:
   ``` txt
      secret.txt  
      confidential.pdf  
