@@ -1,12 +1,12 @@
 extern crate crypto;
 
+use clap::ArgAction;
 use clap::{Arg, Command};
 use crypto::buffer::{BufferResult, ReadBuffer, WriteBuffer};
 use crypto::{aes, blockmodes, buffer, symmetriccipher};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
-use clap::ArgAction;
 
 fn decrypt_data(
     data: &str,
@@ -16,7 +16,7 @@ fn decrypt_data(
     let mut input = File::open(data).unwrap();
     let mut input_data = Vec::new();
     input.read_to_end(&mut input_data).unwrap();
-    //  let mut output = File::create(output_file).unwrap();
+    //    let mut output = File::create(output_file).unwrap();
 
     let mut decryptor =
         aes::cbc_decryptor(aes::KeySize::KeySize256, key, iv, blockmodes::PkcsPadding);
@@ -35,6 +35,9 @@ fn decrypt_data(
                 .iter()
                 .map(|&i| i),
         );
+        /*   output
+        .write_all(write_buffer.take_read_buffer().take_remaining())
+        .unwrap();*/
         match result {
             BufferResult::BufferUnderflow => break,
             BufferResult::BufferOverflow => {}
@@ -149,12 +152,9 @@ fn main() {
             let input = sub_matches.get_one::<String>("input").unwrap();
             let output = sub_matches.get_one::<String>("output").unwrap();
             let key = sub_matches.get_one::<String>("key").unwrap().as_bytes();
-            // Here you would call your decrypt_data function with the provided arguments
-            // decrypt_data(input, output, key);
             match decrypt_data(input, key, &[0; 16]) {
                 Ok(decrypted_data) => {
-                    let mut file =
-                        File::create(output).expect("Unable to create decrypted file");
+                    let mut file = File::create(output).expect("Unable to create decrypted file");
                     file.write_all(&decrypted_data)
                         .expect("Unable to write decrypted data");
                 }
@@ -163,14 +163,11 @@ fn main() {
                 }
             }
             println!("Decryption completed.");
-            
         }
         Some(("encrypt", sub_matches)) => {
             let input = sub_matches.get_one::<String>("input").unwrap();
             let output = sub_matches.get_one::<String>("output").unwrap();
             let key = sub_matches.get_one::<String>("key").unwrap().as_bytes();
-            // Here you would call your encrypt_data function with the provided arguments
-            // encrypt_data(input, output, key);
             encrypt_data(input, output, key);
             println!("Encryption completed.");
         }

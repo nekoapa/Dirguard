@@ -1,42 +1,58 @@
-#!/usr/bin/python3
+
+#!/usr/bin/env python3
 import subprocess
 import sys
 import shutil
 import os
 
-def build_rust_project():
-     try:
-        subprocess.run(["cargo", "build"], check=True)
-        print("success to build tools.")
-     except subprocess.CalledProcessError as e:
-        print("Rust项目构建失败：", e, file=sys.stderr)
-        sys.exit(1)
-
-def clean_rust_project():
+def run_cargo_command(command):
     try:
-        subprocess.run(["cargo", "clean"], check=True)
-        print("success to build tools.")
+        subprocess.run(["cargo", command], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(f"Cargo {command} completed successfully.")
     except subprocess.CalledProcessError as e:
-        print("Rust项目构建失败：", e, file=sys.stderr)
+        print(f"Cargo {command} failed: {e.stderr.decode().strip()}", file=sys.stderr)
         sys.exit(1)
 
-def mov_file(file_p, dest):
-  try:
-    shutil.move(file_p, dest)
-  except shutil.Error as e:
-    print(f"无法移动文件。错误: {e}")
-  except FileNotFoundError:
-    print(f"源文件 '{file_p}' 不存在。")
+
+def move_artifact(artifact_name, destination):
+    source_path = f"target/debug/{artifact_name}"
+    if not os.path.exists(source_path):
+        print(f"Artifact '{artifact_name}' not found. Skipping move operation.")
+        return
+
+    # Ensure the destination directory exists, create if not, remove and recreate if already exists
+    if os.path.exists(destination):
+        print(f"Output directory '{destination}' already exists. Cleaning it.")
+        shutil.rmtree(destination)
+    os.makedirs(destination)
+
+    shutil.move(source_path, destination)
+    print(f"Moved '{artifact_name}' to '{destination}'.")
 
 
-if len(sys.argv) < 2:
-    print("用法：python example.py <参数1> <参数2> <参数3>")
-    sys.exit(1)
+def clean_output_directory(directory):
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
+        print(f"Cleaned output directory '{directory}'.")
+    else:
+        print(f"Output directory '{directory}' does not exist. No need to clean.")
 
-if sys.argv[1] == "build":
- build_rust_project()
- os.mkdir("./out")
- mov_file("target/debug/aes","./out")
-if sys.argv[1] == "clean":
- clean_rust_project()
- shutil.rmtree("./out")
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python build.py <command>")
+        sys.exit(1)
+
+    command = sys.argv[1]
+
+    if command == "build":
+        run_cargo_command("build")
+        move_artifact("aes", "./out")  # Replace 'your_artifact_name' with your actual artifact name
+    elif command == "clean":
+        run_cargo_command("clean")
+        clean_output_directory("./out")
+    else:
+        print(f"Unknown command: {command}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
