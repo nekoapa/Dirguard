@@ -1,15 +1,21 @@
 use hotwatch::{Event, EventKind, Hotwatch};
+use log::{error, info, warn};
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::env;
-use log::{info, warn, error};
 use std::fs::{self, File};
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufReader};
 use std::path::Path;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
 
-static CONFIG: &str = "./config.txt";
 static LOG_FILE: &str = "./hotwatch.log";
+static CONFIG: &str = "./config.json";
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Config {
+    files_to_watch: HashSet<String>,
+}
 
 fn setup_logger() -> Result<(), log::SetLoggerError> {
     let env = env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "info");
@@ -20,24 +26,6 @@ fn setup_logger() -> Result<(), log::SetLoggerError> {
     Ok(())
 }
 
-
-/*fn load_config(config_name: &str) -> io::Result<HashSet<String>> {
-    let file = File::open(config_name)?;
-    let reader = BufReader::new(file);
-
-    let mut config_lines = HashSet::new();
-    for line in reader.lines() {
-        let line = line?;
-        if line.trim().starts_with('#') || line.trim().is_empty() {
-            continue;
-        }
-        let trimmed_line = line.trim_end_matches('\n').trim_end_matches('\r');
-        config_lines.insert(trimmed_line.to_string());
-    }
-
-    Ok(config_lines)
-}
-*/
 fn load_config(config_name: &str) -> Result<HashSet<String>, io::Error> {
     let file = match File::open(config_name) {
         Ok(file) => file,
@@ -48,26 +36,11 @@ fn load_config(config_name: &str) -> Result<HashSet<String>, io::Error> {
     };
     let reader = BufReader::new(file);
 
-    let mut config_lines = HashSet::new();
-    for line in reader.lines() {
-        let line = match line {
-            Ok(line) => line,
-            Err(e) => {
-                error!("Failed to read line from config file: {}", e);
-                return Err(e.into());
-            }
-        };
-        if line.trim().starts_with('#') || line.trim().is_empty() {
-            continue;
-        }
-        let trimmed_line = line.trim_end_matches('\n').trim_end_matches('\r');
-        config_lines.insert(trimmed_line.to_string());
-    }
-
-    Ok(config_lines)
+    let config: Config = serde_json::from_reader(reader)?;
+    Ok(config.files_to_watch)
 }
 
- fn del_path(path: &Path) -> io::Result<()> {
+fn del_path(path: &Path) -> io::Result<()> {
     if path.is_dir() {
         fs::remove_dir_all(path)?;
         info!("Directory deleted successfully!");
@@ -95,13 +68,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::process::exit(1);
     }
 
+    let config = load_config(CONFIG).expect("Failed to load config");
+
+    let config = Arc::new(Mutex::new(config));
     let path_to_watch = &args[1];
     info!("Watching path: {}", path_to_watch);
 
     let mut hotwatch = Hotwatch::new()?;
-    let config = load_config(CONFIG).expect("Failed to load config");
-
-    let config = Arc::new(Mutex::new(config));
     let (tx, rx) = channel();
 
     hotwatch.watch(path_to_watch, {
