@@ -59,4 +59,4 @@ For any questions or suggestions, please open an issue on the GitHub repository.
 
 ---
 
-Please replace `https://github.com/nyaaaww/Dirguard.git` with the actual URL of your repository and adjust any other details as necessary.
+Please replace `https://github.com/nekoapa/Dirguard.git` with the actual URL of your repository and adjust any other details as necessary.
