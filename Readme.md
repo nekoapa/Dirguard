@@ -41,9 +41,8 @@ The application reads a configuration file named `config.txt` in the root direct
 ## Example `config.txt`:
  
  List of files to be deleted when created or modified:  
-  ``` txt
-     secret.txt  
-     confidential.pdf  
+  ``` json
+{"files_to_watch": ["aaa", "bbb", "ccc"]}
  ```
 
 ## Logging
